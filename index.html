@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Garra Eligió Nuestro Amor - Pizza Planet Love</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Montserrat:wght@400;600;800&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        alienGreen: '#39FF14',
+                        alienGreenDark: '#20c008',
+                        pizzaRed: '#FF2A2A',
+                        pizzaYellow: '#FFD700',
+                        cosmicBlue: '#0b112c',
+                        spaceNavy: '#050814',
+                        suitPurple: '#9d4edd',
+                        suitBlue: '#00b4d8'
+                    },
+                    fontFamily: {
+                        cartoon: ['Fredoka One', 'cursive'],
+                        sans: ['Montserrat', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background-color: #050814;
+            color: #f8fafc;
+            overflow-x: hidden;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050814;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #39FF14, #9d4edd);
+            border-radius: 10px;
+        }
+
+        /* Glassmorphism Toy Story Style */
+        .glass-panel {
+            background: rgba(11, 17, 44, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 2px solid rgba(57, 255, 20, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(57, 255, 20, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(157, 78, 221, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .glass-card:hover {
+            border-color: #39FF14;
+            box-shadow: 0 0 25px rgba(57, 255, 20, 0.5), inset 0 0 15px rgba(255, 215, 0, 0.2);
+            transform: translateY(-8px) scale(1.02);
+        }
+
+        /* Text Glows */
+        .glow-green {
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.8), 0 0 20px rgba(57, 255, 20, 0.4);
+        }
+
+        .glow-yellow {
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 25px rgba(255, 42, 42, 0.5);
+        }
+
+        .glow-purple {
+            text-shadow: 0 0 12px rgba(157, 78, 221, 0.9), 0 0 24px rgba(0, 180, 216, 0.6);
+        }
+
+        /* 3D Card Flip */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+
+        .flip-card-inner {
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+
+        .flip-card:hover .flip-card-inner, .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Claw Movement Animation */
+        @keyframes clawSwing {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+
+        .animate-claw {
+            transform-origin: top center;
+            animation: clawSwing 4s ease-in-out infinite;
+        }
+
+        /* Floating Alien Animation */
+        @keyframes alienFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(3deg); }
+        }
+
+        .animate-alien {
+            animation: alienFloat 5s ease-in-out infinite;
+        }
+
+        /* Canvas Overlay */
+        #starCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Claw Machine Canvas Overlay */
+        #clawCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="relative min-h-screen selection:bg-alienGreen selection:text-spaceNavy">
+
+    <!-- Canvas de Estrellas y Marcianitos Flotantes -->
+    <canvas id="starCanvas"></canvas>
+
+    <!-- Navigation Bar Pizza Planet / Star Command -->
+    <nav class="fixed top-0 left-0 w-full z-50 glass-panel px-6 py-4 flex justify-between items-center border-b border-alienGreen/30">
+        <div class="flex items-center gap-3">
+            <div class="relative w-10 h-10 flex items-center justify-center bg-pizzaRed rounded-full border-2 border-pizzaYellow shadow-lg">
+                <i class="fa-solid fa-rocket text-pizzaYellow text-xl"></i>
+            </div>
+            <div>
+                <span class="font-cartoon text-xl md:text-2xl text-pizzaYellow tracking-wide glow-yellow block leading-none">
+                    PIZZA PLANET
+                </span>
+                <span class="text-[10px] text-alienGreen font-mono uppercase tracking-widest block">Sector Amor Incondicional</span>
+            </div>
+        </div>
+        
+        <div class="hidden md:flex space-x-6 font-cartoon text-sm text-slate-200">
+            <a href="#inicio" class="hover:text-alienGreen transition-colors flex items-center gap-1.5">
+                <i class="fa-solid fa-user-astronaut text-alienGreen"></i> Inicio
+            </a>
+            <a href="#garra" class="hover:text-pizzaYellow transition-colors flex items-center gap-1.5">
+                <i class="fa-solid fa-hand-back-fist text-pizzaYellow"></i> La Garra
+            </a>
+            <a href="#cartas" class="hover:text-alienGreen transition-colors flex items-center gap-1.5">
+                <i class="fa-solid fa-box-archive text-suitPurple"></i> Mensajes
+            </a>
+            <a href="#aliens" class="hover:text-pizzaYellow transition-colors flex items-center gap-1.5">
+                <i class="fa-solid fa-eye text-alienGreen"></i> Marcianitos
+            </a>
+        </div>
+
+        <button id="audioToggle" class="px-4 py-2 rounded-full bg-suitPurple/40 border border-alienGreen/40 text-alienGreen font-cartoon text-xs flex items-center gap-2 hover:bg-suitPurple/70 transition-all shadow-lg">
+            <i id="audioIcon" class="fa-solid fa-volume-xmark"></i>
+            <span id="audioText">Música Espacial</span>
+        </button>
+    </nav>
+
+    <!-- Hero Section con Marcianitos y Título -->
+    <section id="inicio" class="relative z-10 min-h-screen flex flex-col justify-center items-center px-4 pt-28 pb-12 text-center">
+        <!-- Marcianito SVG Interactivo Superior -->
+        <div class="animate-alien mb-4 cursor-pointer" id="heroAlien" title="¡Hazme clic para oír mi gratitud!">
+            <svg class="w-32 h-32 md:w-40 md:h-40 drop-shadow-[0_0_20px_rgba(57,255,20,0.6)]" viewBox="0 0 200 200" fill="none">
+                <!-- Cabeza -->
+                <ellipse cx="100" cy="110" rx="65" ry="45" fill="#39FF14" stroke="#20c008" stroke-width="4"/>
+                <!-- Antena -->
+                <path d="M100 65 L100 35" stroke="#39FF14" stroke-width="6" stroke-linecap="round"/>
+                <circle cx="100" cy="30" r="12" fill="#39FF14" stroke="#20c008" stroke-width="3"/>
+                <!-- Orejas -->
+                <path d="M35 110 Q10 90 20 120 Z" fill="#39FF14" stroke="#20c008" stroke-width="3"/>
+                <path d="M165 110 Q190 90 180 120 Z" fill="#39FF14" stroke="#20c008" stroke-width="3"/>
+                <!-- Ojos (3) -->
+                <!-- Ojo Izquierdo -->
+                <circle cx="65" cy="100" r="16" fill="white" stroke="#050814" stroke-width="3"/>
+                <circle class="alien-pupil" cx="65" cy="100" r="7" fill="#050814"/>
+                <!-- Ojo Centro -->
+                <circle cx="100" cy="95" r="18" fill="white" stroke="#050814" stroke-width="3"/>
+                <circle class="alien-pupil" cx="100" cy="95" r="8" fill="#050814"/>
+                <!-- Ojo Derecho -->
+                <circle cx="135" cy="100" r="16" fill="white" stroke="#050814" stroke-width="3"/>
+                <circle class="alien-pupil" cx="135" cy="100" r="7" fill="#050814"/>
+                <!-- Sonrisa -->
+                <path d="M75 130 Q100 145 125 130" stroke="#050814" stroke-width="4" stroke-linecap="round" fill="none"/>
+                <!-- Traje Espacial -->
+                <path d="M50 145 Q100 160 150 145 L160 190 L40 190 Z" fill="#00b4d8"/>
+                <!-- Cuello Morado -->
+                <path d="M55 145 Q100 160 145 145" stroke="#9d4edd" stroke-width="12" fill="none"/>
+                <!-- Emblem Pizza Planet -->
+                <circle cx="130" cy="170" r="10" fill="#FF2A2A"/>
+                <polygon points="130,163 133,173 124,170" fill="#FFD700"/>
+            </svg>
+        </div>
+
+        <div class="max-w-4xl mx-auto">
+            <span class="inline-block px-5 py-2 rounded-full bg-pizzaRed/20 border-2 border-pizzaRed text-pizzaYellow font-cartoon text-xs sm:text-sm tracking-widest uppercase mb-4 shadow-lg glow-yellow">
+                ¡Oooohhh! ¡La Garra eligió nuestro amor! 🍕✨
+            </span>
+            <h1 class="font-cartoon text-3xl sm:text-6xl md:text-7xl font-bold mb-4 text-white glow-green leading-tight">
+                Eternamente Agradecidos
+            </h1>
+            <p class="font-serif italic text-xl sm:text-3xl text-pizzaYellow mb-8">
+                "Un amor que viene de otra galaxia..."
+            </p>
+        </div>
+
+        <!-- CONTADOR DE TIEMPO OFICIAL DE NOVIOS -->
+        <div class="w-full max-w-4xl mx-auto glass-panel p-6 sm:p-10 rounded-3xl relative border-2 border-alienGreen shadow-[0_0_50px_rgba(57,255,20,0.2)]">
+            <div class="absolute -top-5 left-1/2 -translate-x-1/2 px-6 py-1.5 bg-pizzaRed rounded-full border-2 border-pizzaYellow text-white font-cartoon text-xs sm:text-sm tracking-wider uppercase shadow-md">
+                ⏰Novios Desde: 22/09/26
+            </div>
+
+            <h3 class="font-cartoon text-lg sm:text-2xl text-alienGreen mb-8 mt-2 tracking-wide glow-green">
+                Tiempo de Amor Cósmico Acumulado
+            </h3>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+                <!-- Días -->
+                <div class="p-4 sm:p-6 rounded-2xl bg-spaceNavy/90 border-2 border-suitPurple flex flex-col justify-center items-center relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-alienGreen/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <span id="days" class="font-cartoon text-4xl sm:text-6xl text-pizzaYellow glow-yellow">0</span>
+                    <span class="text-xs uppercase tracking-widest text-slate-300 font-bold mt-2">Días</span>
+                </div>
+
+                <!-- Horas -->
+                <div class="p-4 sm:p-6 rounded-2xl bg-spaceNavy/90 border-2 border-suitPurple flex flex-col justify-center items-center relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-alienGreen/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <span id="hours" class="font-cartoon text-4xl sm:text-6xl text-alienGreen glow-green">00</span>
+                    <span class="text-xs uppercase tracking-widest text-slate-300 font-bold mt-2">Horas</span>
+                </div>
+
+                <!-- Minutos -->
+                <div class="p-4 sm:p-6 rounded-2xl bg-spaceNavy/90 border-2 border-suitPurple flex flex-col justify-center items-center relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-alienGreen/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <span id="minutes" class="font-cartoon text-4xl sm:text-6xl text-suitBlue glow-purple">00</span>
+                    <span class="text-xs uppercase tracking-widest text-slate-300 font-bold mt-2">Minutos</span>
+                </div>
+
+                <!-- Segundos -->
+                <div class="p-4 sm:p-6 rounded-2xl bg-spaceNavy/90 border-2 border-pizzaRed flex flex-col justify-center items-center relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-pizzaRed/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <span id="seconds" class="font-cartoon text-4xl sm:text-6xl text-pizzaRed glow-yellow animate-pulse">00</span>
+                    <span class="text-xs uppercase tracking-widest text-slate-300 font-bold mt-2">Segundos</span>
+                </div>
+            </div>
+
+            <p id="countdownSubtitle" class="text-xs sm:text-sm text-slate-300 mt-6 italic font-sans">
+                "¡La Garra se mueve a nuestro favor en cada segundo de nuestras vidas!"
+            </p>
+        </div>
+
+        <a href="#garra" class="mt-12 inline-flex items-center gap-3 px-8 py-4 rounded-full bg-pizzaRed border-2 border-pizzaYellow text-white font-cartoon text-sm tracking-wider uppercase shadow-xl hover:bg-red-600 hover:scale-105 transition-all duration-300">
+            <span>Probar La Garra del Amor</span>
+            <i class="fa-solid fa-hand-back-fist text-pizzaYellow"></i>
+        </a>
+    </section>
+
+    <!-- Sección Interactiva "La GarraDEL AMOR" -->
+    <section id="garra" class="relative z-10 py-24 px-4 max-w-5xl mx-auto">
+        <div class="text-center mb-10">
+            <span class="text-xs font-cartoon uppercase tracking-widest text-pizzaYellow bg-pizzaRed/30 px-4 py-1 rounded-full border border-pizzaRed">
+                Máquina de Preciosos Recuerdos
+            </span>
+            <h2 class="font-cartoon text-3xl sm:text-5xl font-bold text-white mt-4 glow-green">
+                ¡La Garra Nos Ha Elegido!
+            </h2>
+            <p class="text-slate-300 text-sm sm:text-base max-w-xl mx-auto mt-2 font-sans">
+                Haz clic en el botón para activar La Garra. Él atrapará una cápsula espacial con un mensaje especial de amor solo para ti.
+            </p>
+        </div>
+
+        <!-- Contenedor Máquina del Garra -->
+        <div class="relative w-full h-[500px] rounded-3xl glass-panel border-4 border-pizzaRed overflow-hidden shadow-[0_0_60px_rgba(255,42,42,0.3)] flex flex-col justify-between p-6">
+            <canvas id="clawCanvas"></canvas>
+
+            <!-- Estructura Visual La Garra SVG -->
+            <div id="clawContainer" class="absolute top-0 left-1/2 -translate-x-1/2 w-32 animate-claw z-20 transition-all duration-1000">
+                <!-- Cuerda/Cable -->
+                <div id="clawRope" class="w-1.5 bg-slate-400 mx-auto transition-all duration-1000" style="height: 60px;"></div>
+                <!-- Garra -->
+                <svg class="w-24 h-24 mx-auto drop-shadow-md" viewBox="0 0 100 100">
+                    <!-- Base Garra -->
+                    <rect x="35" y="10" width="30" height="20" rx="5" fill="#ffd700" stroke="#000" stroke-width="2"/>
+                    <circle cx="50" cy="20" r="5" fill="#ff2a2a"/>
+                    <!-- Brazos Garra -->
+                    <path class="claw-arm-left" d="M35 25 C10 40 10 70 25 85" fill="none" stroke="#ffd700" stroke-width="8" stroke-linecap="round"/>
+                    <path class="claw-arm-right" d="M65 25 C90 40 90 70 75 85" fill="none" stroke="#ffd700" stroke-width="8" stroke-linecap="round"/>
+                </svg>
+            </div>
+
+            <!-- Cápsulas en el fondo -->
+            <div class="absolute bottom-16 left-0 w-full flex justify-around px-8 z-10 pointer-events-none">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-pizzaRed to-pizzaYellow border-2 border-white shadow-lg animate-bounce" style="animation-delay: 0.1s;"></div>
+                <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-alienGreen to-suitBlue border-2 border-white shadow-lg animate-bounce" style="animation-delay: 0.3s;"></div>
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-suitPurple to-pizzaRed border-2 border-white shadow-lg animate-bounce" style="animation-delay: 0.5s;"></div>
+                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-pizzaYellow to-alienGreen border-2 border-white shadow-lg animate-bounce" style="animation-delay: 0.2s;"></div>
+            </div>
+
+            <!-- Botón de Control -->
+            <div class="relative z-30 mt-auto text-center">
+                <button id="dropClawBtn" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-alienGreen to-alienGreenDark text-spaceNavy font-cartoon text-lg tracking-wider border-2 border-white shadow-[0_0_20px_rgba(57,255,20,0.6)] hover:scale-105 active:scale-95 transition-all">
+                    🎯 Bajar La Garra
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal / Cuadro de Resultado de la Cápsula -->
+        <div id="prizeModal" class="fixed inset-0 bg-spaceNavy/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+            <div class="glass-panel max-w-lg w-full p-8 rounded-3xl border-4 border-pizzaYellow text-center relative shadow-[0_0_80px_rgba(255,215,0,0.5)]">
+                <div class="w-20 h-20 mx-auto -mt-16 bg-pizzaRed border-4 border-pizzaYellow rounded-full flex items-center justify-center text-pizzaYellow text-3xl shadow-xl">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
+                <h3 class="font-cartoon text-2xl text-alienGreen mt-4 glow-green">
+                    ¡La Garra Te Ha Elegido!
+                </h3>
+                <p id="prizeText" class="font-serif italic text-lg text-slate-100 my-6 leading-relaxed">
+                    "Mensaje atrapado..."
+                </p>
+                <button id="closePrizeBtn" class="px-6 py-2.5 rounded-full bg-suitPurple border border-alienGreen text-white font-cartoon text-sm hover:bg-purple-700 transition-all">
+                    Aceptar con Gratitud Eterna ✨
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cartas Galácticas estilo Star Command -->
+    <section id="cartas" class="relative z-10 py-24 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="font-cartoon text-3xl sm:text-5xl font-bold text-white glow-yellow">
+                Mensajes del Sector Amor
+            </h2>
+            <p class="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base mt-2 font-sans">
+                Gira las tarjetas espaciales para leer los juramentos de nuestro expediente secreto.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Carta 1 -->
+            <div class="flip-card perspective-1000 h-96 cursor-pointer">
+                <div class="flip-card-inner relative w-full h-full rounded-3xl shadow-2xl">
+                    <div class="flip-card-front absolute inset-0 rounded-3xl glass-card p-8 flex flex-col justify-between items-center text-center border-alienGreen/40">
+                        <div class="w-16 h-16 rounded-full bg-spaceNavy border-2 border-alienGreen flex items-center justify-center text-alienGreen text-2xl shadow-lg">
+                            <i class="fa-solid fa-heart flex"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs uppercase font-cartoon text-alienGreen">Expediente I</span>
+                            <h3 class="font-cartoon text-2xl text-white mt-1">La Garra del Destino</h3>
+                        </div>
+                        <p class="text-xs text-slate-400 italic">Toca o pasa el cursor para abrir</p>
+                    </div>
+                    <div class="flip-card-back absolute inset-0 rounded-3xl glass-panel p-8 flex flex-col justify-center items-center text-center border-pizzaYellow">
+                        <i class="fa-solid fa-quote-left text-pizzaYellow text-3xl mb-4 opacity-70"></i>
+                        <p class="font-serif italic text-slate-100 text-sm sm:text-base leading-relaxed">
+                            "Entre millones de juguetes en el universo, La Garra decidió que fueras tú mi único y eterno tesoro."
+                        </p>
+                        <span class="mt-6 font-cartoon text-sm text-alienGreen">Eternamente agradecidos</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carta 2 -->
+            <div class="flip-card perspective-1000 h-96 cursor-pointer">
+                <div class="flip-card-inner relative w-full h-full rounded-3xl shadow-2xl">
+                    <div class="flip-card-front absolute inset-0 rounded-3xl glass-card p-8 flex flex-col justify-between items-center text-center border-pizzaRed/40">
+                        <div class="w-16 h-16 rounded-full bg-spaceNavy border-2 border-pizzaRed flex items-center justify-center text-pizzaRed text-2xl shadow-lg">
+                            <i class="fa-solid fa-rocket"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs uppercase font-cartoon text-pizzaYellow">Expediente II</span>
+                            <h3 class="font-cartoon text-2xl text-white mt-1">Nuestra Galaxia</h3>
+                        </div>
+                        <p class="text-xs text-slate-400 italic">Toca o pasa el cursor para abrir</p>
+                    </div>
+                    <div class="flip-card-back absolute inset-0 rounded-3xl glass-panel p-8 flex flex-col justify-center items-center text-center border-pizzaRed">
+                        <i class="fa-solid fa-quote-left text-pizzaRed text-3xl mb-4 opacity-70"></i>
+                        <p class="font-serif italic text-slate-100 text-sm sm:text-base leading-relaxed">
+                            "Aquel 22 de septiembre a la 1:46 la órbita de mi corazón cambió para siempre. Te amo al infinito y más allá."
+                        </p>
+                        <span class="mt-6 font-cartoon text-sm text-pizzaYellow">Hasta el infinito</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carta 3 -->
+            <div class="flip-card perspective-1000 h-96 cursor-pointer">
+                <div class="flip-card-inner relative w-full h-full rounded-3xl shadow-2xl">
+                    <div class="flip-card-front absolute inset-0 rounded-3xl glass-card p-8 flex flex-col justify-between items-center text-center border-suitPurple/40">
+                        <div class="w-16 h-16 rounded-full bg-spaceNavy border-2 border-suitPurple flex items-center justify-center text-suitPurple text-2xl shadow-lg">
+                            <i class="fa-solid fa-planet-ringed"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs uppercase font-cartoon text-suitBlue">Expediente III</span>
+                            <h3 class="font-cartoon text-2xl text-white mt-1">Juramento de 3 Ojos</h3>
+                        </div>
+                        <p class="text-xs text-slate-400 italic">Toca o pasa el cursor para abrir</p>
+                    </div>
+                    <div class="flip-card-back absolute inset-0 rounded-3xl glass-panel p-8 flex flex-col justify-center items-center text-center border-suitBlue">
+                        <i class="fa-solid fa-quote-left text-suitBlue text-3xl mb-4 opacity-70"></i>
+                        <p class="font-serif italic text-slate-100 text-sm sm:text-base leading-relaxed">
+                            "Con mis tres ojos puestos en ti: uno para admirar tu belleza, otro para cuidar tu corazón y el tercero para ver nuestro futuro juntos."
+                        </p>
+                        <span class="mt-6 font-cartoon text-sm text-suitBlue">Amor Intergaláctico</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Galería Interactiva de Marcianitos -->
+    <section id="aliens" class="relative z-10 py-20 px-4 max-w-5xl mx-auto text-center">
+        <h2 class="font-cartoon text-3xl sm:text-4xl text-pizzaYellow glow-yellow mb-2">
+            ¡Interactúa con la Tribu Marciana!
+        </h2>
+        <p class="text-slate-300 text-sm mb-10">Haz clic sobre cualquier marcianito para escuchar su adoración hacia nuestro amor.</p>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            <!-- Alien 1 -->
+            <div class="glass-card p-6 rounded-2xl flex flex-col items-center cursor-pointer alien-interactive">
+                <svg class="w-20 h-20 mb-2 drop-shadow-md" viewBox="0 0 200 200">
+                    <ellipse cx="100" cy="110" rx="65" ry="45" fill="#39FF14"/>
+                    <circle cx="100" cy="30" r="10" fill="#39FF14"/>
+                    <path d="M100 65 L100 35" stroke="#39FF14" stroke-width="5"/>
+                    <circle cx="65" cy="100" r="14" fill="white"/><circle class="alien-pupil" cx="65" cy="100" r="6" fill="black"/>
+                    <circle cx="100" cy="95" r="16" fill="white"/><circle class="alien-pupil" cx="100" cy="95" r="7" fill="black"/>
+                    <circle cx="135" cy="100" r="14" fill="white"/><circle class="alien-pupil" cx="135" cy="100" r="6" fill="black"/>
+                    <path d="M80 130 Q100 140 120 130" stroke="black" stroke-width="3" fill="none"/>
+                </svg>
+                <span class="font-cartoon text-xs text-alienGreen">"¡Oooohhh!"</span>
+            </div>
+
+            <!-- Alien 2 -->
+            <div class="glass-card p-6 rounded-2xl flex flex-col items-center cursor-pointer alien-interactive">
+                <svg class="w-20 h-20 mb-2 drop-shadow-md" viewBox="0 0 200 200">
+                    <ellipse cx="100" cy="110" rx="65" ry="45" fill="#39FF14"/>
+                    <circle cx="100" cy="30" r="10" fill="#39FF14"/>
+                    <path d="M100 65 L100 35" stroke="#39FF14" stroke-width="5"/>
+                    <circle cx="65" cy="100" r="14" fill="white"/><circle class="alien-pupil" cx="65" cy="100" r="6" fill="black"/>
+                    <circle cx="100" cy="95" r="16" fill="white"/><circle class="alien-pupil" cx="100" cy="95" r="7" fill="black"/>
+                    <circle cx="135" cy="100" r="14" fill="white"/><circle class="alien-pupil" cx="135" cy="100" r="6" fill="black"/>
+                    <ellipse cx="100" cy="132" rx="10" ry="6" fill="black"/>
+                </svg>
+                <span class="font-cartoon text-xs text-pizzaYellow">"¡LA Garra!"</span>
+            </div>
+
+            <!-- Alien 3 -->
+            <div class="glass-card p-6 rounded-2xl flex flex-col items-center cursor-pointer alien-interactive">
+                <svg class="w-20 h-20 mb-2 drop-shadow-md" viewBox="0 0 200 200">
+                    <ellipse cx="100" cy="110" rx="65" ry="45" fill="#39FF14"/>
+                    <circle cx="100" cy="30" r="10" fill="#39FF14"/>
+                    <path d="M100 65 L100 35" stroke="#39FF14" stroke-width="5"/>
+                    <circle cx="65" cy="100" r="14" fill="white"/><circle class="alien-pupil" cx="65" cy="100" r="6" fill="black"/>
+                    <circle cx="100" cy="95" r="16" fill="white"/><circle class="alien-pupil" cx="100" cy="95" r="7" fill="black"/>
+                    <circle cx="135" cy="100" r="14" fill="white"/><circle class="alien-pupil" cx="135" cy="100" r="6" fill="black"/>
+                    <path d="M75 125 Q100 145 125 125" stroke="black" stroke-width="4" fill="none"/>
+                </svg>
+                <span class="font-cartoon text-xs text-suitBlue">"¡Agradecidos!"</span>
+            </div>
+
+            <!-- Alien 4 -->
+            <div class="glass-card p-6 rounded-2xl flex flex-col items-center cursor-pointer alien-interactive">
+                <svg class="w-20 h-20 mb-2 drop-shadow-md" viewBox="0 0 200 200">
+                    <ellipse cx="100" cy="110" rx="65" ry="45" fill="#39FF14"/>
+                    <circle cx="100" cy="30" r="10" fill="#39FF14"/>
+                    <path d="M100 65 L100 35" stroke="#39FF14" stroke-width="5"/>
+                    <circle cx="65" cy="100" r="14" fill="white"/><circle class="alien-pupil" cx="65" cy="100" r="6" fill="black"/>
+                    <circle cx="100" cy="95" r="16" fill="white"/><circle class="alien-pupil" cx="100" cy="95" r="7" fill="black"/>
+                    <circle cx="135" cy="100" r="14" fill="white"/><circle class="alien-pupil" cx="135" cy="100" r="6" fill="black"/>
+                    <path d="M80 135 Q100 120 120 135" stroke="black" stroke-width="3" fill="none"/>
+                </svg>
+                <span class="font-cartoon text-xs text-pizzaRed">"¡Nuestro numero: 3!"</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Pizza Planet -->
+    <footer class="relative z-10 glass-panel py-10 px-6 text-center border-t border-alienGreen/30 mt-20">
+        <div class="max-w-4xl mx-auto flex flex-col items-center gap-4">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-pizza-slice text-pizzaYellow text-xl"></i>
+                <span class="font-cartoon text-lg text-alienGreen">Pizza Planet Sector Amor</span>
+                <i class="fa-solid fa-pizza-slice text-pizzaYellow text-xl"></i>
+            </div>
+            <p class="font-serif italic text-slate-300 text-sm">
+                "Guardamos nuestro algo en la cápsula más segura del universo desde el 22/09/26."
+            </p>
+            <span class="text-xs text-slate-500 font-mono">
+                © Creado para la ser mas hermosa ARLY.
+            </span>
+        </div>
+    </footer>
+
+    <!-- Audio Synth y Scripts de Interacción -->
+    <script>
+        let audioCtx = null;
+        let isAudioPlaying = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playAlienSound(freq = 600) {
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.8, audioCtx.currentTime + 0.3);
+
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        document.getElementById('audioToggle').addEventListener('click', () => {
+            initAudio();
+            const btnText = document.getElementById('audioText');
+            const btnIcon = document.getElementById('audioIcon');
+
+            if (!isAudioPlaying) {
+                audioCtx.resume();
+                playAlienSound(800);
+                isAudioPlaying = true;
+                btnText.textContent = "Audio Activo";
+                btnIcon.className = "fa-solid fa-volume-high text-alienGreen animate-pulse";
+            } else {
+                isAudioPlaying = false;
+                btnText.textContent = "Música Espacial";
+                btnIcon.className = "fa-solid fa-volume-xmark";
+            }
+        });
+
+        const officialStartDate = new Date('2026-09-22T01:46:00');
+
+        function updateNoviosCounter() {
+            const now = new Date();
+            const diff = now - officialStartDate;
+
+            const daysElement = document.getElementById('days');
+            const hoursElement = document.getElementById('hours');
+            const minutesElement = document.getElementById('minutes');
+            const secondsElement = document.getElementById('seconds');
+            const subtitle = document.getElementById('countdownSubtitle');
+
+            if (diff >= 0) {
+                // Si la fecha ya inició
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((diff / 1000 / 60) % 60);
+                const seconds = Math.floor((diff / 1000) % 60);
+
+                daysElement.textContent = days;
+                hoursElement.textContent = String(hours).padStart(2, '0');
+                minutesElement.textContent = String(minutes).padStart(2, '0');
+                secondsElement.textContent = String(seconds).padStart(2, '0');
+                subtitle.textContent = "¡La Garra se mueve a nuestro favor en cada segundo de nuestras vidas!";
+            } else {
+                // Cuenta regresiva si aún falta para la fecha
+                const absDiff = Math.abs(diff);
+                const days = Math.floor(absDiff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((absDiff / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((absDiff / 1000 / 60) % 60);
+                const seconds = Math.floor((absDiff / 1000) % 60);
+
+                daysElement.textContent = days;
+                hoursElement.textContent = String(hours).padStart(2, '0');
+                minutesElement.textContent = String(minutes).padStart(2, '0');
+                secondsElement.textContent = String(seconds).padStart(2, '0');
+                subtitle.textContent = "⌛ Faltan este tiempo para nuestro momento prometido del 22 de Septiembre!";
+            }
+        }
+
+        setInterval(updateNoviosCounter, 1000);
+        updateNoviosCounter();
+
+        const starCanvas = document.getElementById('starCanvas');
+        const starCtx = starCanvas.getContext('2d');
+
+        let width = starCanvas.width = window.innerWidth;
+        let height = starCanvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = starCanvas.width = window.innerWidth;
+            height = starCanvas.height = window.innerHeight;
+        });
+
+        const spaceItems = [];
+
+        for (let i = 0; i < 80; i++) {
+            spaceItems.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                size: Math.random() * 2 + 1,
+                alpha: Math.random(),
+                speed: Math.random() * 0.02 + 0.005,
+                color: ['#39FF14', '#FF2A2A', '#FFD700', '#ffffff', '#9d4edd'][Math.floor(Math.random() * 5)]
+            });
+        }
+
+        function animateSpace() {
+            starCtx.clearRect(0, 0, width, height);
+
+            spaceItems.forEach(item => {
+                item.alpha += item.speed;
+                if (item.alpha > 1 || item.alpha < 0) item.speed = -item.speed;
+
+                starCtx.save();
+                starCtx.globalAlpha = Math.abs(item.alpha);
+                starCtx.fillStyle = item.color;
+                starCtx.shadowBlur = 10;
+                starCtx.shadowColor = item.color;
+                starCtx.beginPath();
+                starCtx.arc(item.x, item.y, item.size, 0, Math.PI * 2);
+                starCtx.fill();
+                starCtx.restore();
+            });
+
+            requestAnimationFrame(animateSpace);
+        }
+
+        animateSpace();
+
+        window.addEventListener('mousemove', (e) => {
+            const pupils = document.querySelectorAll('.alien-pupil');
+            pupils.forEach(pupil => {
+                const rect = pupil.getBoundingClientRect();
+                const pupilX = rect.left + rect.width / 2;
+                const pupilY = rect.top + rect.height / 2;
+
+                const angle = Math.atan2(e.clientY - pupilY, e.clientX - pupilX);
+                const distance = 3; // Límite de movimiento de la pupila
+
+                const offsetX = Math.cos(angle) * distance;
+                const offsetY = Math.sin(angle) * distance;
+
+                pupil.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+            });
+        });
+
+        const dropClawBtn = document.getElementById('dropClawBtn');
+        const clawContainer = document.getElementById('clawContainer');
+        const clawRope = document.getElementById('clawRope');
+        const prizeModal = document.getElementById('prizeModal');
+        const prizeText = document.getElementById('prizeText');
+        const closePrizeBtn = document.getElementById('closePrizeBtn');
+
+        const lovePrizes = [
+            "¡La Garra ha atrapado el juramento de amarte sin límites en esta y todas las galaxias!",
+            "¡Cápsula dorada: 'Eres la casualidad más bonita que trajo el universo a mi vida'!",
+            "¡Premio Galáctico: 'Ese 22 de Septiembre, comenzó oficialmente la mejor historia de amor'!",
+            "¡La Garra te eligió a ti como la persona más dulce y especial del planeta!",
+            "¡Mensaje de Pizza Planet: 'Eternamente agradecidoo por tener tu amor cada día'!"
+        ];
+
+        let isClawBusy = false;
+
+        dropClawBtn.addEventListener('click', () => {
+            if (isClawBusy) return;
+            isClawBusy = true;
+            playAlienSound(400);
+
+            // Bajar cuerda de la Garra
+            clawRope.style.height = "260px";
+
+            setTimeout(() => {
+                playAlienSound(900);
+                // Subir garra con premio
+                clawRope.style.height = "60px";
+
+                setTimeout(() => {
+                    // Mostrar modal
+                    const randomPrize = lovePrizes[Math.floor(Math.random() * lovePrizes.length)];
+                    prizeText.textContent = randomPrize;
+                    prizeModal.classList.remove('hidden');
+                    setTimeout(() => prizeModal.classList.add('opacity-100'), 50);
+                    isClawBusy = false;
+                }, 1000);
+            }, 1200);
+        });
+
+        closePrizeBtn.addEventListener('click', () => {
+            prizeModal.classList.remove('opacity-100');
+            setTimeout(() => prizeModal.classList.add('hidden'), 300);
+        });
+
+        document.querySelectorAll('.alien-interactive, #heroAlien').forEach((alien, idx) => {
+            alien.addEventListener('click', () => {
+                playAlienSound(500 + idx * 150);
+                alien.classList.add('scale-110');
+                setTimeout(() => alien.classList.remove('scale-110'), 300);
+            });
+        });
+
+        /* Flip cards en móviles */
+        document.querySelectorAll('.flip-card').forEach(card => {
+            card.addEventListener('click', () => {
+                card.classList.toggle('flipped');
+            });
+        });
+    </script>
+</body>
+</html>
